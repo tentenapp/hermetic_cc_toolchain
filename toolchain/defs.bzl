@@ -223,7 +223,7 @@ def _zig_repository_impl(repository_ctx):
 
     # Instead of directly invoking the `zig-wrapper`, invoke our wrapper script.
     for t in _BUILTIN_TOOLS:
-        repository_ctx.symlink("tools/zig-wrapper{}".format(exe), "tools/{}{}".format(t, exe))
+        repository_ctx.symlink("tools/zig-wrapper.sh", "tools/{}{}".format(t, exe))
 
     for target_config in target_structs():
         tool_path = zig_tool_path(os).format(
