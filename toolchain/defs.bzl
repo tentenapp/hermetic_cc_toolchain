@@ -203,15 +203,26 @@ def _zig_repository_impl(repository_ctx):
         fail(zig_wrapper_err_msg)
 
     exe = ".exe" if os == "windows" else ""
-    repository_ctx.symlink("tools/zig-wrapper{}".format(exe), "tools/ar{}".format(exe))
-    repository_ctx.symlink("tools/zig-wrapper{}".format(exe), "tools/ld.lld{}".format(exe))
-    repository_ctx.symlink("tools/zig-wrapper{}".format(exe), "tools/lld-link{}".format(exe))
+
+    repository_ctx.template(
+        "tools/zig-wrapper.sh",
+        Label("//toolchain:zig-wrapper.sh"),
+        executable = True,
+        substitutions = {
+            "{ZIG_WRAPPER}": "{}".format(repository_ctx.path("tools/zig-wrapper{}".format(exe))),
+        },
+    )
+
+    # Instead of directly invoking the `zig-wrapper`, invoke our wrapper script.
+    repository_ctx.symlink("tools/zig-wrapper.sh", "tools/ar{}".format(exe))
+    repository_ctx.symlink("tools/zig-wrapper.sh", "tools/ld.lld{}".format(exe))
+    repository_ctx.symlink("tools/zig-wrapper.sh", "tools/lld-link{}".format(exe))
     for target_config in target_structs():
         tool_path = zig_tool_path(os).format(
             zig_tool = "c++",
             zigtarget = target_config.zigtarget,
         )
-        repository_ctx.symlink("tools/zig-wrapper{}".format(exe), tool_path)
+        repository_ctx.symlink("tools/zig-wrapper.sh", tool_path)
 
 zig_repository = repository_rule(
     attrs = {
